@@ -85,8 +85,8 @@ shinyUI(navbarPage(
 
       /* Image styles */
       .image-container img {
-        max-width: 100%;
-        max-height: 800px;
+        max-width: 50%;
+        max-height: 600px;
         height: auto;
         width: auto;
       }
@@ -211,7 +211,7 @@ shinyUI(navbarPage(
   ),
   
   # Image Tab for plot_maps and plot_figs
-  tabPanel("Fancy model",
+  tabPanel("Additive model",
            h3("Spatial Association"),
            div(class = "image-container",
                img(src = "rent_maps.png")

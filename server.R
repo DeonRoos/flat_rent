@@ -2,6 +2,7 @@ library(shiny)
 library(mgcv)
 library(dplyr)
 library(leaflet)
+library(leaflet.extras)
 
 shinyServer(function(input, output, session) {
   
@@ -49,21 +50,28 @@ shinyServer(function(input, output, session) {
   
   # Store user inputs when the modal is submitted
   observeEvent(input$submit, {
-    user_inputs$Rooms <- input$Rooms
-    user_inputs$FloorArea <- input$FloorArea
-    user_inputs$EPC <- input$EPC
-    user_inputs$Tax <- input$Tax
-    user_inputs$HouseType <- input$HouseType
-    user_inputs$Furnished <- input$Furnished
-    user_inputs$DayAdded <- input$DayAdded
-    removeModal()
+    if (is.null(input$Rooms) || input$Rooms <= 0 || is.null(input$FloorArea) || input$FloorArea < 10) {
+      showNotification("Please enter valid values for all fields.", type = "error")
+    } else {
+      user_inputs$Rooms <- input$Rooms
+      user_inputs$FloorArea <- input$FloorArea
+      user_inputs$EPC <- input$EPC
+      user_inputs$Tax <- input$Tax
+      user_inputs$HouseType <- input$HouseType
+      user_inputs$Furnished <- input$Furnished
+      user_inputs$DayAdded <- input$DayAdded
+      removeModal()
+      showNotification("Property details submitted successfully!", type = "message")
+    }
   })
   
-  # Initial leaflet map
+  # Leaflet Map with Search Feature
   output$map <- renderLeaflet({
     leaflet() %>%
       addTiles() %>%
-      setView(lng = coords$lon, lat = coords$lat, zoom = 12)
+      setView(lng = coords$lon, lat = coords$lat, zoom = 12) %>%
+      addSearchFeatures(targetGroups = NULL, 
+                        options = searchFeaturesOptions(zoom = 15, openPopup = TRUE))
   })
   
   # Update coordinates and add marker on map click
