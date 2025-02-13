@@ -86,7 +86,88 @@ shinyUI(navbarPage(
       /* Image styles */
       .image-container img {
         max-width: 100%;
+        max-height: 800px;
         height: auto;
+        width: auto;
+      }
+
+      /* Modal styles */
+      .modal-content {
+        background-color: #202123 !important;
+        color: white !important;
+        border: 1px solid #00A68A !important;
+      }
+
+      .modal-header {
+        border-bottom: 1px solid #00A68A !important;
+      }
+
+      .modal-footer {
+        border-top: 1px solid #00A68A !important;
+      }
+
+      /* Date picker styles */
+      .datepicker {
+        background-color: #444654 !important;
+        color: white !important;
+        border: 1px solid #00A68A !important;
+      }
+
+      .datepicker table {
+        background-color: #444654 !important;
+      }
+
+      .datepicker table tr td.day:hover,
+      .datepicker table tr td.day.focused {
+        background-color: #00A68A !important;
+        color: white !important;
+      }
+
+      .datepicker table tr td.active,
+      .datepicker table tr td.active:hover,
+      .datepicker table tr td.active.disabled,
+      .datepicker table tr td.active.disabled:hover {
+        background-color: #00A68A !important;
+        color: white !important;
+      }
+
+      .datepicker table tr td.today {
+        background-color: #444654 !important;
+        color: #00A68A !important;
+      }
+
+      .datepicker table tr td.today:hover {
+        background-color: #00A68A !important;
+        color: white !important;
+      }
+
+      .datepicker table tr td span:hover {
+        background-color: #00A68A !important;
+        color: white !important;
+      }
+
+      .datepicker table tr td span.active {
+        background-color: #00A68A !important;
+        color: white !important;
+      }
+
+      .datepicker table tr td span.active:hover {
+        background-color: #00A68A !important;
+        color: white !important;
+      }
+
+      .datepicker .datepicker-switch {
+        color: white !important;
+      }
+
+      .datepicker .next,
+      .datepicker .prev {
+        color: white !important;
+      }
+
+      .datepicker .next:hover,
+      .datepicker .prev:hover {
+        color: #00A68A !important;
       }
       ")
     )
@@ -98,12 +179,10 @@ shinyUI(navbarPage(
              sidebarPanel(
                h3("Enter Property Details"),
                h5("Select Property Location"),
-               leafletOutput("map", height = "300px"),
+               leafletOutput("map", height = "600px"),
                br(),
-               numericInput("rooms", "Number of Rooms:", value = 3),
-               numericInput("sqmt", "Square Meters:", value = 65),
-               selectInput("epc", "EPC Rating:", choices = c("a", "b", "c", "d", "e", "f", "g"), selected = "c"),
-               selectInput("tax", "Tax Band:", choices = c("a", "b", "c", "d", "e", "f", "g"), selected = "d"),
+               actionButton("open_modal", "Enter Property Details"),
+               br(), br(),
                actionButton("predict", "Predict Price")
              ),
              mainPanel(
@@ -124,7 +203,7 @@ shinyUI(navbarPage(
   ),
   
   # Image Tab for lm_plots
-  tabPanel("LM",
+  tabPanel("Linear Model",
            h3("Variable Associations"),
            div(class = "image-container",
                img(src = "lm_plots.png")

@@ -11,8 +11,53 @@ shinyServer(function(input, output, session) {
   lm_path <- file.path("data", "lm_m1.rds")
   lm_m1 <- readRDS(lm_path)
   
-  # Reactive values for storing coordinates
+  # Define the earliest date in your data
+  earliest_date <- as.Date("2024-10-04")
+  current_date <- Sys.Date()
+  
+  # Reactive values for storing coordinates and user inputs
   coords <- reactiveValues(lon = -2.105621720258337, lat = 57.16686874046701)
+  user_inputs <- reactiveValues(
+    Rooms = NULL,
+    FloorArea = NULL,
+    EPC = NULL,
+    Tax = NULL,
+    HouseType = NULL,
+    Furnished = NULL,
+    DayAdded = NULL
+  )
+  
+  # Show modal dialog when the "Enter Property Details" button is clicked
+  observeEvent(input$open_modal, {
+    showModal(
+      modalDialog(
+        title = "Enter Property Details",
+        numericInput("Rooms", "Number of Rooms:", value = 3),
+        numericInput("FloorArea", "Square Meters:", value = 65),
+        selectInput("EPC", "EPC Rating:", choices = c("A", "B", "C", "D", "E", "F", "G"), selected = "C"),
+        selectInput("Tax", "Tax Band:", choices = c("A", "B", "C", "D", "E", "F", "G"), selected = "D"),
+        selectInput("HouseType", "House Type:", choices = c("Flat", "Detached", "Semi-Detached", "Terraced"), selected = "Flat"),
+        selectInput("Furnished", "Furnished:", choices = c("Unfurnished", "Fully furnished", "Part furnished"), selected = "Unfurnished"),
+        dateInput("DayAdded", "Date Added:", value = current_date, min = earliest_date, max = current_date),
+        footer = tagList(
+          actionButton("submit", "Submit", class = "btn-primary"),
+          modalButton("Cancel")
+        )
+      )
+    )
+  })
+  
+  # Store user inputs when the modal is submitted
+  observeEvent(input$submit, {
+    user_inputs$Rooms <- input$Rooms
+    user_inputs$FloorArea <- input$FloorArea
+    user_inputs$EPC <- input$EPC
+    user_inputs$Tax <- input$Tax
+    user_inputs$HouseType <- input$HouseType
+    user_inputs$Furnished <- input$Furnished
+    user_inputs$DayAdded <- input$DayAdded
+    removeModal()
+  })
   
   # Initial leaflet map
   output$map <- renderLeaflet({
@@ -33,14 +78,18 @@ shinyServer(function(input, output, session) {
   
   # Fancy Model Prediction
   observeEvent(input$predict, {
+    req(user_inputs$Rooms, user_inputs$FloorArea, user_inputs$EPC, user_inputs$Tax, user_inputs$HouseType, user_inputs$Furnished, user_inputs$DayAdded)
+    
     new_data <- data.frame(
-      lon = coords$lon,
-      lat = coords$lat,
-      sqmt = input$sqmt,
-      rooms = input$rooms,
-      epc = input$epc,
-      tax = input$tax,
-      days_since = 0
+      Longitude = coords$lon,
+      Latitude = coords$lat,
+      FloorArea = user_inputs$FloorArea,
+      Rooms = user_inputs$Rooms,
+      EPC = user_inputs$EPC,
+      Tax = user_inputs$Tax,
+      HouseType = user_inputs$HouseType,
+      Furnished = user_inputs$Furnished,
+      DayAdded = as.numeric(difftime(user_inputs$DayAdded, Sys.Date(), units = "days"))
     )
     
     prediction <- predict(model_m1, new_data, se.fit = TRUE)
@@ -57,29 +106,20 @@ shinyServer(function(input, output, session) {
         "</div>"
       )
     })
-    
-    output$prediction_details <- renderUI({
-      HTML(paste0(
-        "<h4>Details Used for Prediction</h4>",
-        "<ul>",
-        "<li>Number of Rooms: ", input$rooms, "</li>",
-        "<li>Square Meters: ", input$sqmt, "</li>",
-        "<li>EPC Rating: ", input$epc, "</li>",
-        "<li>Tax Band: ", input$tax, "</li>",
-        "<li>Longitude: ", coords$lon, "</li>",
-        "<li>Latitude: ", coords$lat, "</li>",
-        "</ul>"
-      ))
-    })
   })
   
   # Linear Model Prediction
   observeEvent(input$predict, {
+    req(user_inputs$Rooms, user_inputs$FloorArea, user_inputs$EPC, user_inputs$Tax, user_inputs$HouseType, user_inputs$Furnished, user_inputs$DayAdded)
+    
     new_data <- data.frame(
-      sqmt = input$sqmt,
-      rooms = input$rooms,
-      epc = input$epc,
-      tax = input$tax
+      FloorArea = user_inputs$FloorArea,
+      Rooms = user_inputs$Rooms,
+      EPC = user_inputs$EPC,
+      Tax = user_inputs$Tax,
+      HouseType = user_inputs$HouseType,
+      Furnished = user_inputs$Furnished,
+      DayAdded = as.numeric(difftime(user_inputs$DayAdded, Sys.Date(), units = "days"))
     )
     
     lm_prediction <- predict(lm_m1, new_data, se.fit = TRUE)
@@ -95,19 +135,6 @@ shinyServer(function(input, output, session) {
         "<p style='font-size: 18px;'>Price Range: £", format(lm_low_price, big.mark = ","), " - £", format(lm_upp_price, big.mark = ","), "</p>",
         "</div>"
       )
-    })
-    
-    output$lmprediction_details <- renderUI({
-      HTML(paste0(
-        "<h4>Details Used for Prediction</h4>",
-        "<ul>",
-        "<li>Number of Rooms: ", input$rooms, "</li>",
-        "<li>Number of Bathrooms: ", input$baths, "</li>",
-        "<li>Square Meters: ", input$sqmt, "</li>",
-        "<li>EPC Rating: ", input$epc, "</li>",
-        "<li>Tax Band: ", input$tax, "</li>",
-        "</ul>"
-      ))
     })
   })
   
