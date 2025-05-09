@@ -1,8 +1,10 @@
 library(shiny)
+library(shinyjs)
+library(shinyBS)
 library(leaflet)
 
 shinyUI(navbarPage(
-  title = "Flat Rent",
+  title = "Granite Rent Guide",
   tags$head(
     tags$style(
       HTML("
@@ -173,52 +175,73 @@ shinyUI(navbarPage(
     )
   ),
   
-  # Combined Prediction Tab
-  tabPanel("Predict Rent",
-           sidebarLayout(
-             sidebarPanel(
-               h3("Enter Property Details"),
-               h5("Select Property Location"),
-               leafletOutput("map", height = "600px"),
-               br(),
-               actionButton("open_modal", "Enter Property Details"),
-               br(), br(),
-               actionButton("predict", "Predict Price")
-             ),
-             mainPanel(
-               h4("Prediction Results"),
-               h5("Two models are used for predicting rent price. The first is a linear model (as you have learnt how to fit). The second is also a linear model which includes a 'non-linear interaction' to describe the spatial pattern (you will learn how to fit 'linear interactions' next week)."),
-               htmlOutput("lmprediction"),
-               br(),
-               htmlOutput("prediction"),
-               br()
-             )
-           )
+  tags$head(
+    # Script to manually re-trigger MathJax whenever we want
+    tags$script(HTML("
+      Shiny.addCustomMessageHandler('mathjax-reload', function(message) {
+        if (typeof(MathJax) !== 'undefined') {
+          MathJax.typesetPromise();
+        }
+      });
+    "))
   ),
   
-  # Leaflet Map Tab
-  tabPanel("Data",
-           h3("Map of Aberdeen House Prices"),
-           uiOutput("leaflet_map_price")
+  useShinyjs(),
+  
+  # 1) "Predict Rent" tab
+  tabPanel(
+    title = tagList(icon("chart-line"), "Predict Rent"),
+    sidebarLayout(
+      sidebarPanel(
+        h3("Enter Property Details"),
+        h5(tagList(icon("map-marker-alt"), "Select Property Location")),
+        
+        leafletOutput("map", height = "600px"),
+        br(),
+        
+        actionButton("open_modal", label = tagList(icon("edit"), "Enter Property Details"), class = "btn"),
+        actionButton("predict",    label = tagList(icon("chart-line"), "Predict Rent"), class = "btn", disabled = TRUE)
+      ),
+      mainPanel(
+        h4("Prediction Results"),
+        
+        p("We run two models to predict rent: a simple linear model and a more flexible model (GAM). ",
+          "The predicted price is shown in teal."),
+        
+        htmlOutput("lmPrediction"),
+        br(),
+        htmlOutput("fancyPrediction"),
+        br(),
+        uiOutput("prediction_details")
+      )
+    )
   ),
   
-  # Image Tab for lm_plots
-  tabPanel("Linear Model",
-           h3("Variable Associations"),
-           div(class = "image-container",
-               img(src = "lm_plots.png")
-           )
+  # # 2) Equations tab
+  # tabPanel(
+  #   title = "Equations (For the Curious)",
+  #   withMathJax(
+  #     h3("Linear Model Equations"),
+  #     p("Below is the static equation that includes all factor expansions. ",
+  #       "Then we show a dynamic equation that uses your numeric inputs for FloorArea, Rooms, etc."),
+  #     
+  #     uiOutput("lmEquationStatic"),
+  #     hr(),
+  #     uiOutput("lmEquationDynamic")
+  #   )
+  # ),
+  
+  # 3) Data & Visuals dropdown
+  navbarMenu(
+    title = tagList(icon("chart-bar"), "Data & Visuals"),
+    tabPanel("Linear Model", div(class="image-container", img(src="lm_plots.png"))),
+    tabPanel("GAM (Heatmap)", div(class="image-container", img(src="rent_maps.png"))),
+    tabPanel("GAM (Figures)", div(class="image-container", img(src="rent_figs.png")))
   ),
   
-  # Image Tab for plot_maps and plot_figs
-  tabPanel("Additive model",
-           h3("Spatial Association"),
-           div(class = "image-container",
-               img(src = "rent_maps.png")
-           ),
-           br(),
-           div(class = "image-container",
-               img(src = "rent_figs.png")
-           )
+  # 4) Data tab
+  tabPanel(
+    title = tagList(icon("database"), "Data"),
+    uiOutput("leaflet_map_price")
   )
 ))

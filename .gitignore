@@ -2,3 +2,5 @@
 .Rhistory
 .RData
 .Ruserdata
+data/lm_m1.rds
+data/model_m1.rds

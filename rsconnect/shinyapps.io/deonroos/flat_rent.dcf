@@ -1,0 +1,12 @@
+name: flat_rent
+title: flat_rent
+username: deonroos
+account: deonroos
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 14267382
+bundleId: 9959285
+url: https://deonroos.shinyapps.io/flat_rent/
+version: 1
+asMultiple: FALSE
+asStatic: FALSE

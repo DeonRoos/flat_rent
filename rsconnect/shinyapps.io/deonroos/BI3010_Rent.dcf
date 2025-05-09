@@ -5,7 +5,7 @@ account: deonroos
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 12433991
-bundleId: 8988656
+bundleId: 10258438
 url: https://deonroos.shinyapps.io/BI3010_Rent/
 version: 1
 asMultiple: FALSE
