@@ -9,14 +9,12 @@ shinyServer(function(input, output, session) {
   
   useShinyjs()
   
-  # 1) Load Models
-  lm_m1    <- readRDS(file.path("data", "lm_m1.rds"))   # Basic linear model
-  model_m1 <- readRDS(file.path("data", "model_m1.rds"))# GAM / fancy model
+  lm_m1    <- readRDS(file.path("data", "lm_m1.rds"))
+  model_m1 <- readRDS(file.path("data", "model_m1.rds"))
   
   earliest_date <- as.Date("2024-10-04")
   current_date  <- Sys.Date()
   
-  # 2) Reactives
   coords <- reactiveValues(lon=-2.1056217, lat=57.1668687)
   form_data <- reactiveValues(
     Rooms=3, FloorArea=65,
@@ -26,7 +24,6 @@ shinyServer(function(input, output, session) {
     DayAdded=current_date
   )
   
-  # 3) Modal
   createDetailsModal <- function() {
     modalDialog(
       title = "Enter Property Details",
@@ -78,13 +75,11 @@ shinyServer(function(input, output, session) {
   })
   
   observeEvent(input$submit_details, {
-    # validations
     if(is.null(input$Rooms) || input$Rooms<=0 ||
        is.null(input$FloorArea) || input$FloorArea<10) {
       showNotification("Please enter valid values (>=1 room, >=10 sqm).", type="error")
       shinyjs::disable("predict")
     } else {
-      # store
       form_data$Rooms     <- input$Rooms
       form_data$FloorArea <- input$FloorArea
       form_data$EPC       <- input$EPC
@@ -99,7 +94,6 @@ shinyServer(function(input, output, session) {
     }
   })
   
-  # 4) Map
   output$map <- renderLeaflet({
     leaflet() %>% addTiles() %>% setView(lng=coords$lon, lat=coords$lat, zoom=12)
   })
@@ -111,50 +105,11 @@ shinyServer(function(input, output, session) {
       addMarkers(lng=coords$lon, lat=coords$lat)
   })
   
-  # 5) Data tab
   output$leaflet_map_price <- renderUI({
     tags$iframe(src="abdn_map.html", width="100%", height="850px", frameborder="0", scrolling="yes")
   })
-  
-  # # 6) Static equation with the FULL expansions, NO color
-  # #    Note: We rely on withMathJax() in the UI to parse $$...$$
-  # output$lmEquationStatic <- renderUI({
-  #   # Full expansions with factor levels, no color
-  #   eq_static <- "
-  #   <h4>Linear Model (Baseline Equation)</h4>
-  #   $$
-  #   \\text{Rent}_i \\sim N(\\mu_i, \\sigma^2).
-  # 
-  #   \\mu_i = \\beta_0 
-  #            + \\beta_1 \\times \\text{FloorArea}_i
-  #            + \\beta_2 \\times \\text{Rooms}_i
-  #            + \\beta_3 \\times \\text{Flat}_i
-  #            + \\beta_4 \\times \\text{SemiDetached}_i
-  #            + \\beta_5 \\times \\text{Terrace}_i
-  #            + \\beta_6 \\times \\text{EPCC}_i
-  #            + \\beta_7 \\times \\text{EPCD}_i
-  #            + \\beta_8 \\times \\text{EPCE}_i
-  #            + \\beta_9 \\times \\text{EPCF}_i
-  #            + \\beta_{10} \\times \\text{TaxB}_i
-  #            + \\beta_{11} \\times \\text{TaxC}_i
-  #            + \\beta_{12} \\times \\text{TaxD}_i
-  #            + \\beta_{13} \\times \\text{TaxE}_i
-  #            + \\beta_{14} \\times \\text{TaxF}_i
-  #            + \\beta_{15} \\times \\text{TaxG}_i
-  #            + \\beta_{16} \\times \\text{PartFurnished}_i
-  #            + \\beta_{17} \\times \\text{Unfurnished}_i
-  #            + \\beta_{18} \\times \\text{Day}_i.
-  #   $$
-  # 
-  #   <p><em>Reference categories:</em> HouseType=Detached, EPC=A, Tax=A, Furnished=Fully furnished.</p>
-  #   "
-  #   HTML(eq_static)
-  # })
-  
-  # 7) Prediction logic
   observeEvent(input$predict, {
     
-    # a) Linear Model
     new_data_lm <- data.frame(
       FloorArea = form_data$FloorArea,
       Rooms     = form_data$Rooms,
@@ -180,7 +135,6 @@ shinyServer(function(input, output, session) {
       )
     })
     
-    # b) GAM
     new_data_gam <- data.frame(
       Longitude=coords$lon, Latitude=coords$lat,
       FloorArea=form_data$FloorArea, Rooms=form_data$Rooms,
@@ -205,7 +159,6 @@ shinyServer(function(input, output, session) {
       )
     })
     
-    # c) Final details
     output$prediction_details <- renderUI({
       HTML(paste0(
         "<h4>Details Used for Prediction</h4><ul>",
@@ -220,25 +173,5 @@ shinyServer(function(input, output, session) {
         "</ul>"
       ))
     })
-    
-    # # d) Dynamic equation (partially expanded)
-    # # e.g., we only show the numeric placeholders for FloorArea, Rooms, and maybe day
-    # eq_template <- "
-    # $$
-    # \\text{Rent}_i \\sim N(\\mu_i, \\sigma^2).
-    # 
-    # \\mu_i = 659.16
-    #          + 0.94 \\times (%.2f)
-    #          + 101.26 \\times (%.0f)
-    #          + \\dots
-    # $$
-    # "
-    # eq_text <- sprintf(eq_template, form_data$FloorArea, form_data$Rooms)
-    # 
-    # output$lmEquationDynamic <- renderUI({
-    #   HTML(paste0(
-    #     "<h4>Linear Model (Your Inputs)</h4>", eq_text
-    #   ))
-    # })
   })
 })

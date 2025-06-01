@@ -87,12 +87,12 @@ shinyUI(navbarPage(
 
       /* Image styles */
       .image-container img {
-        max-width: 50%;
-        max-height: 600px;
-        height: auto;
-        width: auto;
+        width: 100%; /* Use full width */
+        display: flex;
+        justify-content: center;
+        align-items: center;
       }
-
+      
       /* Modal styles */
       .modal-content {
         background-color: #202123 !important;
@@ -174,23 +174,11 @@ shinyUI(navbarPage(
       ")
     )
   ),
-  
-  tags$head(
-    # Script to manually re-trigger MathJax whenever we want
-    tags$script(HTML("
-      Shiny.addCustomMessageHandler('mathjax-reload', function(message) {
-        if (typeof(MathJax) !== 'undefined') {
-          MathJax.typesetPromise();
-        }
-      });
-    "))
-  ),
-  
+
   useShinyjs(),
   
-  # 1) "Predict Rent" tab
   tabPanel(
-    title = tagList(icon("chart-line"), "Predict Rent"),
+    title = tagList(icon("chart-line"), "Predict Your Rent"),
     sidebarLayout(
       sidebarPanel(
         h3("Enter Property Details"),
@@ -216,32 +204,16 @@ shinyUI(navbarPage(
       )
     )
   ),
-  
-  # # 2) Equations tab
-  # tabPanel(
-  #   title = "Equations (For the Curious)",
-  #   withMathJax(
-  #     h3("Linear Model Equations"),
-  #     p("Below is the static equation that includes all factor expansions. ",
-  #       "Then we show a dynamic equation that uses your numeric inputs for FloorArea, Rooms, etc."),
-  #     
-  #     uiOutput("lmEquationStatic"),
-  #     hr(),
-  #     uiOutput("lmEquationDynamic")
-  #   )
-  # ),
-  
-  # 3) Data & Visuals dropdown
+
   navbarMenu(
-    title = tagList(icon("chart-bar"), "Data & Visuals"),
-    tabPanel("Linear Model", div(class="image-container", img(src="lm_plots.png"))),
-    tabPanel("GAM (Heatmap)", div(class="image-container", img(src="rent_maps.png"))),
-    tabPanel("GAM (Figures)", div(class="image-container", img(src="rent_figs.png")))
+    title = tagList(icon("chart-bar"), "Relationships"),
+    tabPanel("Linear Model", div(class="image-container", img(src="lm_plots.png", style = "width: 100%; height: auto;"))),
+    tabPanel("GAM (Heatmap)", div(class="image-container", img(src="rent_maps.png", style = "width: 100%; height: auto;"))),
+    tabPanel("GAM (Figures)", div(class="image-container", img(src="rent_figs.png", style = "width: 100%; height: auto;")))
   ),
   
-  # 4) Data tab
   tabPanel(
-    title = tagList(icon("database"), "Data"),
+    title = tagList(icon("database"), "Rental Map"),
     uiOutput("leaflet_map_price")
   )
 ))
